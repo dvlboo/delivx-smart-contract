@@ -1,38 +1,49 @@
+import { HardhatUserConfig } from "hardhat/config";
 import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
-import { configVariable, defineConfig } from "hardhat/config";
+import hardhatIgnitionViemPlugin from "@nomicfoundation/hardhat-ignition-viem";
+import hardhatVerify from "@nomicfoundation/hardhat-verify";
+import hardhatPlugin from "@nomicfoundation/hardhat-viem";
+import * as dotenv from "dotenv";
 
-export default defineConfig({
-  plugins: [hardhatToolboxViemPlugin],
+dotenv.config();
+
+const config: HardhatUserConfig = {
+  plugins: [hardhatToolboxViemPlugin, hardhatIgnitionViemPlugin, hardhatVerify, hardhatPlugin,
+  ],
   solidity: {
-    profiles: {
-      default: {
-        version: "0.8.28",
-      },
-      production: {
-        version: "0.8.28",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200,
-          },
-        },
+    version: "0.8.20",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200,
       },
     },
   },
   networks: {
-    hardhatMainnet: {
-      type: "edr-simulated",
-      chainType: "l1",
-    },
-    hardhatOp: {
-      type: "edr-simulated",
-      chainType: "op",
-    },
-    sepolia: {
+    "mantle-sepolia": {
       type: "http",
-      chainType: "l1",
-      url: configVariable("SEPOLIA_RPC_URL"),
-      accounts: [configVariable("SEPOLIA_PRIVATE_KEY")],
+      url: "https://rpc.sepolia.mantle.xyz",
+      accounts: [process.env.PRIVATE_KEY as string],
+      chainId: 5003,
     },
   },
-});
+  chainDescriptors: {
+    5003: {
+      name: "Mantle Sepolia",
+      blockExplorers: {
+        blockscout: {
+          name: "Mantle Explorer",
+          url: "https://explorer.sepolia.mantle.xyz/",
+          apiUrl: "https://explorer-sepolia.mantle.xyz/api",
+        },
+      },
+    },
+  },
+  verify: {
+    blockscout: {
+      enabled: true,
+    },
+  },
+};
+
+export default config;
